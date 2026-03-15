@@ -244,14 +244,15 @@
         document.addEventListener("DOMContentLoaded", () => {
             if(window.btcDailyData && window.btcDailyData.length > 0) {
                 let firstDate = new Date(window.btcDailyData[0][0]);
-                let lastDate = new Date(window.btcDailyData[window.btcDailyData.length - 1][0]);
+                let lastData = window.btcDailyData[window.btcDailyData.length - 1];
+                let lastDate = new Date(lastData[0]);
                 
-                let defaultStart = new Date("2020-01-12");
+                let defaultStart = new Date("2024-01-01");
                 document.getElementById('inputStartDate').value = defaultStart.toISOString().split('T')[0];
                 document.getElementById('inputStartDate').min = firstDate.toISOString().split('T')[0];
                 document.getElementById('inputStartDate').max = lastDate.toISOString().split('T')[0];
                 
-                document.getElementById('todayPriceLabel').innerText = `$${window.btcDailyData[window.btcDailyData.length - 1][1].toLocaleString(undefined, {maximumFractionDigits:2})}`;
+                document.getElementById('todayPriceLabel').innerText = `$${lastData[1].toLocaleString(undefined, {maximumFractionDigits:2})} (อัปเดตล่าสุด: ${formatDate(lastData[0])})`;
             }
         });
 
