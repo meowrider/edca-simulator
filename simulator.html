@@ -428,6 +428,7 @@
             document.getElementById('fomoValue').innerText = `$${fomoValue.toLocaleString(undefined, {maximumFractionDigits:0})}`;
             document.getElementById('fomoProfit').innerText = `กำไรสุทธิ ${fomoProfitPct >= 0 ? '+' : ''}${fomoProfitPct.toFixed(0)}%`;
             document.getElementById('fomoProfit').className = `text-sm font-bold inline-block px-3 py-1 rounded-full mt-1 ${fomoProfitPct >= 0 ? 'text-green-400 bg-green-900/30' : 'text-red-400 bg-red-900/30'}`;
+            document.getElementById('actionBar').classList.remove('hidden');
         }
 
         function exportCSV() {
