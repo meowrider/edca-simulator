@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ / สมัครสมาชิก | BossQuant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: white; overflow-x: hidden; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-center items-center p-6 relative">
+    
+    <!-- Decor -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-indigo-600/20 blur-[100px] rounded-full pointer-events-none"></div>
+
+    <div class="mb-8 text-center relative z-10">
+        <a href="index.html" class="text-3xl font-extrabold tracking-tighter flex items-center justify-center gap-2 mb-2">
+            <span class="text-indigo-500">⚡</span> BOSS<span class="font-light text-slate-400">QUANT</span>
+        </a>
+        <p class="text-slate-400">เข้าสู่ระบบเพื่อใช้งานแพลตฟอร์ม</p>
+    </div>
+
+    <div class="w-full max-w-md glass-card p-8 rounded-3xl shadow-2xl relative z-10">
+        <div class="flex border-b border-slate-700 mb-6">
+            <button id="tabLogin" onclick="switchTab('login')" class="flex-1 pb-3 text-center font-bold text-indigo-400 border-b-2 border-indigo-500">เข้าสู่ระบบ</button>
+            <button id="tabRegister" onclick="switchTab('register')" class="flex-1 pb-3 text-center font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-300">สมัครใช้งาน</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="formLogin" onsubmit="handleAuth(event, 'login')" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">อีเมล</label>
+                <input type="email" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none" placeholder="boss@example.com">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">รหัสผ่าน</label>
+                <input type="password" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg mt-4">
+                เข้าสู่ระบบ
+            </button>
+        </form>
+
+        <!-- Register Form (Hidden by default) -->
+        <form id="formRegister" onsubmit="handleAuth(event, 'register')" class="space-y-4 hidden">
+            <div class="p-3 mb-4 bg-green-500/20 border border-green-500/50 rounded-lg text-sm text-green-400 text-center">
+                ✨ เปิดให้สมัครฟรี (ช่วงทดสอบระบบ MVP) ข้ามขั้นตอนการชำระเงินได้เลย!
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">ชื่อ - นามสกุล</label>
+                <input type="text" id="regName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none" placeholder="สมชาย ใจดี">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">อีเมล</label>
+                <input type="email" id="regEmail" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none" placeholder="boss@example.com">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">รหัสผ่าน</label>
+                <input type="password" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg mt-4">
+                สมัครใช้งานและเข้า Dashboard
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Check if already logged in
+        if(localStorage.getItem('bq_user')) {
+            window.location.href = 'dashboard.html';
+        }
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('formLogin');
+            const registerForm = document.getElementById('formRegister');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLogin.className = 'flex-1 pb-3 text-center font-bold text-indigo-400 border-b-2 border-indigo-500';
+                tabRegister.className = 'flex-1 pb-3 text-center font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-300';
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabRegister.className = 'flex-1 pb-3 text-center font-bold text-green-400 border-b-2 border-green-500';
+                tabLogin.className = 'flex-1 pb-3 text-center font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-300';
+            }
+        }
+
+        function handleAuth(e, type) {
+            e.preventDefault();
+            let userName = "นักลงทุน";
+            if(type === 'register') {
+                userName = document.getElementById('regName').value;
+            } else {
+                userName = e.target.querySelector('input[type="email"]').value.split('@')[0];
+            }
+            
+            // Bypass payment: Save mock user to local storage
+            localStorage.setItem('bq_user', JSON.stringify({ name: userName, isPremium: true }));
+            
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
