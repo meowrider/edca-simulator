@@ -116,6 +116,14 @@
                     <p id="fomoProfit" class="text-sm font-bold text-green-400 bg-green-900/30 inline-block px-3 py-1 rounded-full mt-1">กำไร +0%</p>
                 </div>
             </div>
+
+            <!-- Generate TV Script Action -->
+            <div class="mt-6 text-center">
+                <button onclick="generateCustomTVScript()" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all text-lg flex items-center justify-center gap-3 mx-auto">
+                    <span>📊</span> สร้าง TradingView Script จากแผนของคุณ
+                </button>
+                <p class="text-xs text-slate-400 mt-2">สคริปต์จะถูกเขียนขึ้นมาใหม่ตามเงินทุนและเป้าหมายของคุณโดยเฉพาะ</p>
+            </div>
         </div>
 
         <!-- Table -->
@@ -181,6 +189,22 @@
                     ❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Custom TV Script Modal -->
+    <div id="tvModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center p-4">
+        <div class="bg-slate-900 border border-blue-500/50 w-full max-w-2xl rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closeTVScript()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-blue-400">📊 Your Custom TradingView Plan</h2>
+            <p class="text-slate-400 text-sm mb-4">คัดลอกโค้ดด้านล่างนี้ไปวางใน Pine Editor ของ TradingView ระบบจะโชว์ป้ายพร้อม <span class="text-green-400 font-bold">จำนวนเงินซื้อจริง</span> ตามแผนของคุณ</p>
+            <div class="bg-slate-950 rounded-lg p-4 mb-4 border border-slate-800 relative">
+                <pre id="customTVCode" class="text-green-400 font-mono text-xs overflow-y-auto h-[40vh]">Loading...</pre>
+                <button onclick="copyTVScript()" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1 rounded text-white border border-slate-600">Copy</button>
+            </div>
+            <div class="flex justify-end">
+                <button onclick="closeTVScript()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition-colors">ปิดหน้าต่าง</button>
+            </div>
         </div>
     </div>
 
@@ -447,6 +471,77 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function generateCustomTVScript() {
+            let initialCash = document.getElementById('inputCapital').value;
+            let targetDCA = document.getElementById('inputTarget').value;
+            let interval = document.getElementById('inputInterval').value;
+            let strategy = document.getElementById('inputStrategy').value;
+
+            let stratName = strategy === 'pure_va' ? 'Pure Value Averaging (Fixed Target)' : 'Multiplier EDCA (X Zones)';
+
+            let code = `// This source code is subject to the terms of the Mozilla Public License 2.0
+//@version=5
+indicator("BossQuant: My Custom Plan", overlay=true)
+
+// ==========================================
+// ⚡ CUSTOM TRADING PLAN
+// ------------------------------------------
+// 💰 ทุนเตรียมไว้: $${initialCash}
+// 🎯 เป้าหมายเข้างวดละ: $${targetDCA}
+// ⏱ ความถี่: ทุก ${interval} วัน
+// 🧠 กลยุทธ์: ${stratName}
+// ==========================================
+
+base_dca = input.float(${targetDCA}, "งบ Base DCA ต่องวด ($)")
+sma_length = input.int(200, "เส้นค่าเฉลี่ย SMA")
+
+sma200 = ta.sma(close, sma_length)
+plot(sma200, color=color.blue, title="SMA 200")
+
+is_crash = close < sma200 * 0.7
+is_bear = close < sma200 and close >= sma200 * 0.7
+is_normal = close >= sma200 and close <= sma200 * 1.3
+is_bull = close > sma200 * 1.3
+
+// --- คำนวณยอดเงินซื้อจริงต่องวด (เฉพาะแผนของคุณ) ---
+multiplier = 1.0
+if is_crash
+    multiplier := 5.0
+else if is_bear
+    multiplier := 2.0
+else if is_bull
+    multiplier := 0.5
+else
+    multiplier := 1.0
+
+buy_amount = base_dca * multiplier
+
+// --- สีพื้นหลังช่วยดูโซนง่ายๆ ---
+bgcolor(is_crash ? color.new(color.red, 90) : na, title="Crash Zone")
+bgcolor(is_bear ? color.new(color.orange, 90) : na, title="Bear Zone")
+bgcolor(is_bull ? color.new(color.green, 90) : na, title="Bull Zone")
+
+// --- ป้ายแจ้งเตือนจำนวนเงินบนกราฟ ---
+if ta.crossover(close, sma200) or ta.crossunder(close, sma200) or ta.crossunder(close, sma200 * 0.7) or ta.crossover(close, sma200 * 1.3)
+    lbl_txt = "งวดนี้จ่าย:\\n$" + str.tostring(buy_amount, "#.##")
+    lbl_color = is_crash ? color.red : is_bear ? color.orange : is_bull ? color.green : color.blue
+    label.new(bar_index, low, text=lbl_txt, style=label.style_label_up, color=lbl_color, textcolor=color.white, size=size.normal)
+`;
+            
+            document.getElementById('customTVCode').innerText = code;
+            document.getElementById('tvModal').classList.remove('hidden');
+        }
+
+        function closeTVScript() {
+            document.getElementById('tvModal').classList.add('hidden');
+        }
+
+        function copyTVScript() {
+            const code = document.getElementById('customTVCode').innerText;
+            navigator.clipboard.writeText(code);
+            alert("คัดลอกโค้ดสำเร็จ! เอาไปแปะใน Pine Editor ได้เลยครับ");
         }
     </script>
 </body>
