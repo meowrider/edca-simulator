@@ -28,6 +28,9 @@
                 <p class="text-slate-400 text-sm">โหมดเปรียบเทียบกลยุทธ์ (Multiplier vs Pure Value Averaging)</p>
             </div>
             <div class="flex gap-3">
+                <a href="index.html" class="bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/50 text-indigo-300 px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 text-sm shadow">
+                    🏠 กลับหน้าหลัก (Home)
+                </a>
                 <button onclick="exportCSV()" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 text-sm shadow">
                     ⬇️ โหลดตาราง (Excel)
                 </button>
@@ -36,18 +39,18 @@
 
         <!-- Inputs Section -->
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1">
-                <p class="text-xs text-slate-400 mb-1 font-semibold uppercase">1. ทุนเริ่มต้น ($)</p>
+            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1 cursor-help" title="กรอกจำนวนเงินสดทั้งหมดที่คุณเตรียมไว้ลงทุน (ตัวอย่าง: 10000)">
+                <p class="text-xs text-slate-400 mb-1 font-semibold uppercase flex items-center justify-between">1. ทุนเริ่มต้น ($) <span class="text-indigo-400 text-lg leading-none">ⓘ</span></p>
                 <input type="number" id="inputCapital" value="10000" onchange="autoCalcTarget()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-bold outline-none text-sm">
             </div>
             
-            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1">
-                <p class="text-xs text-slate-400 mb-1 font-semibold uppercase">2. เริ่มลงทุน</p>
+            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1 cursor-help" title="เลือกวันที่ในอดีตเพื่อเริ่มจำลองสถานการณ์ย้อนหลัง (Backtest)">
+                <p class="text-xs text-slate-400 mb-1 font-semibold uppercase flex items-center justify-between">2. เริ่มลงทุน <span class="text-indigo-400 text-lg leading-none">ⓘ</span></p>
                 <input type="date" id="inputStartDate" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-bold outline-none text-sm">
             </div>
 
-            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1">
-                <p class="text-xs text-slate-400 mb-1 font-semibold uppercase">3. ความถี่</p>
+            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1 cursor-help" title="เลือกความถี่ในการเข้าซื้อ (แนะนำ 15 วัน หรือ 30 วัน)">
+                <p class="text-xs text-slate-400 mb-1 font-semibold uppercase flex items-center justify-between">3. ความถี่ <span class="text-indigo-400 text-lg leading-none">ⓘ</span></p>
                 <select id="inputInterval" onchange="autoCalcTarget()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white font-bold outline-none cursor-pointer text-sm">
                     <option value="7">ทุก 7 วัน</option>
                     <option value="14">ทุก 14 วัน</option>
@@ -56,13 +59,13 @@
                 </select>
             </div>
 
-            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1 border-indigo-500/30">
-                <p class="text-xs text-indigo-300 mb-1 font-semibold uppercase">4. เป้าหมายพอร์ตต่องวด ($)</p>
+            <div class="glass-panel p-4 rounded-xl col-span-2 md:col-span-1 border-indigo-500/30 cursor-help" title="เป้าหมายของพอร์ตที่คุณอยากให้โตขึ้นในแต่ละงวด (เช่น งบ 10,000 หาร 25 งวด = ตกงวดละ 400)">
+                <p class="text-xs text-indigo-300 mb-1 font-semibold uppercase flex items-center justify-between">4. เป้าพอร์ตต่องวด ($) <span class="text-indigo-400 text-lg leading-none">ⓘ</span></p>
                 <input type="number" id="inputTarget" value="400" class="w-full bg-slate-900 border border-indigo-500/50 rounded p-2 text-white font-bold outline-none text-sm">
             </div>
 
-            <div class="glass-panel p-4 rounded-xl col-span-4 md:col-span-2 border-green-500/30 bg-slate-800/80">
-                <p class="text-xs text-green-400 mb-1 font-semibold uppercase">🎯 กลยุทธ์การลงทุน (Strategy)</p>
+            <div class="glass-panel p-4 rounded-xl col-span-4 md:col-span-2 border-green-500/30 bg-slate-800/80 cursor-help" title="เลือกกลยุทธ์: Pure VA (โฟกัสเป้าหมายตายตัว ไม่สนตัวคูณ) หรือ Multiplier (ใช้ระบบตัวคูณตามโซน)">
+                <p class="text-xs text-green-400 mb-1 font-semibold uppercase flex items-center justify-between">🎯 กลยุทธ์การลงทุน <span class="text-green-400 text-lg leading-none">ⓘ</span></p>
                 <select id="inputStrategy" class="w-full bg-slate-900 border border-green-500/50 rounded p-2 text-white font-bold outline-none cursor-pointer text-sm">
                     <option value="pure_va">Pure Value Averaging (เป้าหมายตายตัว)</option>
                     <option value="multiplier">Multiplier EDCA (ระบบตัวคูณ 1x - 5x)</option>
@@ -137,9 +140,99 @@
                 </table>
             </div>
         </div>
+
+        <!-- Registration Form (Google Sheets Integration) -->
+        <div class="mt-12 bg-slate-800 p-8 rounded-2xl border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+            <div class="relative z-10 text-center mb-6">
+                <h3 class="text-2xl font-bold text-white mb-2">🔥 พร้อมใช้งานระบบจริงหรือยัง?</h3>
+                <p class="text-slate-400 text-sm">ถ้าคุณพอใจกับผลทดสอบย้อนหลัง ลงทะเบียนขอรับสิทธิ์ใช้งาน <b>EDCA Sniper Auto-Bot</b> ได้เลย (รับจำกัด 100 ท่าน)</p>
+            </div>
+            
+            <form id="waitlistForm" onsubmit="submitToGoogleSheet(event)" class="relative z-10 max-w-3xl mx-auto space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-1">ชื่อ - นามสกุล</label>
+                        <input type="text" id="regName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors" placeholder="เช่น สมชาย ร่ำรวย">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-1">อีเมล</label>
+                        <input type="email" id="regEmail" required class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors" placeholder="somchai@example.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">เงินทุนตั้งต้นที่พร้อมลงทุน (USD)</label>
+                    <select id="regCapital" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors">
+                        <option value="< $1,000">เริ่มต้นทดลอง (น้อยกว่า $1,000)</option>
+                        <option value="$1,000 - $5,000">นักลงทุนรายย่อย ($1,000 - $5,000)</option>
+                        <option value="$5,000 - $10,000">นักลงทุนจริงจัง ($5,000 - $10,000)</option>
+                        <option value="> $10,000">วาฬ ($10,000 ขึ้นไป)</option>
+                    </select>
+                </div>
+                <div class="pt-4">
+                    <button type="submit" id="regSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg text-lg flex justify-center items-center gap-2">
+                        <span>จองสิทธิ์ Early Access</span> <span>&rarr;</span>
+                    </button>
+                </div>
+                <div id="regSuccessMsg" class="hidden mt-4 p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-center font-bold">
+                    ✅ บันทึกข้อมูลเข้า Google Sheet สำเร็จ! เราจะติดต่อกลับไปทางอีเมลครับ
+                </div>
+                <div id="regErrorMsg" class="hidden mt-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-center font-bold">
+                    ❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
+        // Google Apps Script Webhook URL (Boss ต้องเปลี่ยนตรงนี้หลังจากสร้าง Webhook แล้ว)
+        const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_WEBAPP_URL_HERE';
+
+        function submitToGoogleSheet(e) {
+            e.preventDefault();
+            
+            if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_WEBAPP_URL_HERE') {
+                alert("ระบบพร้อมยิงข้อมูลแล้ว! แต่ CTO ต้องรอ Boss เอา URL จาก Google Apps Script มาแปะในโค้ดก่อนครับ (บรรทัด 186)");
+                return;
+            }
+
+            const btn = document.getElementById('regSubmitBtn');
+            const successMsg = document.getElementById('regSuccessMsg');
+            const errorMsg = document.getElementById('regErrorMsg');
+            
+            btn.innerText = 'กำลังส่งข้อมูล...';
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            successMsg.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+
+            const payload = {
+                name: document.getElementById('regName').value,
+                email: document.getElementById('regEmail').value,
+                capital: document.getElementById('regCapital').value,
+                timestamp: new Date().toISOString()
+            };
+
+            // ใช้ no-cors เพราะ Google Script จะ redirect กลับมา ซึ่งเบราว์เซอร์อาจ block
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                document.getElementById('waitlistForm').reset();
+                btn.style.display = 'none';
+                successMsg.classList.remove('hidden');
+            })
+            .catch((err) => {
+                console.error(err);
+                btn.innerText = 'จองสิทธิ์ Early Access';
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                errorMsg.classList.remove('hidden');
+            });
+        }
         let csvData = [];
         const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
