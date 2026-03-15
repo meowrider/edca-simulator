@@ -260,7 +260,7 @@
             // Optional auto-calc logic if needed
         }
 
-        function runSimulation() {
+        async function runSimulation() {
             if(!window.btcDailyData) return;
             
             let initialCash = parseFloat(document.getElementById('inputCapital').value);
@@ -410,6 +410,25 @@
             document.getElementById('profitLabel').className = `text-xs mb-1 relative z-10 ${labelClass}`;
             
             let todayPrice = window.btcDailyData[window.btcDailyData.length - 1][1];
+            let priceSource = "";
+            try {
+                let btn = document.querySelector('button[onclick="runSimulation()"]');
+                if (btn) btn.innerText = 'กำลังอัปเดตราคา Binance...';
+                let res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+                let liveData = await res.json();
+                todayPrice = parseFloat(liveData.price);
+                let now = new Date();
+                let timeStr = now.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+                let dateStr = now.toLocaleDateString('th-TH', {day: 'numeric', month: 'short', year: '2-digit'});
+                priceSource = `(อัปเดตล่าสุด: ${dateStr} เวลา ${timeStr} จาก Binance)`;
+                if (btn) btn.innerHTML = '<span>⚡</span> รันระบบจำลอง';
+            } catch (err) {
+                console.error("Binance API error", err);
+                priceSource = `(ใช้ราคาปิดล่าสุดในระบบ)`;
+            }
+
+            document.getElementById('todayPriceLabel').innerText = `$${todayPrice.toLocaleString(undefined, {maximumFractionDigits:2})} ${priceSource}`;
+            
             let fomoValue = btc * todayPrice;
             let fomoProfitPct = totalSpent > 0 ? ((fomoValue - totalSpent) / totalSpent) * 100 : 0;
             
