@@ -96,9 +96,6 @@
 //@version=5
 indicator("BossQuant EDCA Sniper (Multiplier)", overlay=true)
 
-// --- Settings ---
-base_dca = input.float(400, "Base DCA Amount (1x)")
-
 // --- Logic ---
 sma200 = ta.sma(close, 200)
 plot(sma200, color=color.blue, title="SMA 200")
@@ -119,7 +116,11 @@ else if is_bull
 else
     multiplier := 1.0
 
-buy_amount = base_dca * multiplier
+// --- Display Labels on Chart ---
+if ta.crossover(close, sma200) or ta.crossunder(close, sma200) or ta.crossunder(close, sma200 * 0.7) or ta.crossover(close, sma200 * 1.3)
+    txt = str.tostring(multiplier) + "X Buy"
+    lbl_color = is_crash ? color.red : is_bear ? color.orange : is_bull ? color.green : color.blue
+    label.new(bar_index, low - (low * 0.05), text=txt, style=label.style_label_up, color=lbl_color, textcolor=color.white, size=size.small)
 
 // Background color for zones
 bgcolor(is_crash ? color.new(color.red, 90) : na, title="Crash Zone")
@@ -192,10 +193,6 @@ bgcolor(is_bull ? color.new(color.green, 90) : na, title="Bull Zone")
 //@version=5
 indicator("BossQuant EDCA Sniper (Multiplier)", overlay=true)
 
-// --- Settings ---
-// ผู้ใช้แค่กรอกจำนวนเงิน DCA ต่อ 1 งวดปกติ (เช่น 400$)
-base_dca = input.float(400, "Base DCA Amount (1x)")
-
 // --- Logic ---
 sma200 = ta.sma(close, 200)
 plot(sma200, color=color.blue, title="SMA 200")
@@ -221,14 +218,12 @@ else if is_bull
 else
     multiplier := 1.0
 
-buy_amount = base_dca * multiplier
-
 // --- Display Labels on Chart ---
-// สร้างป้ายบอกจำนวน X และจำนวนเงิน ($) ทุกๆ แท่งเทียนที่ปิด
+// สร้างป้ายบอกจำนวน X เพื่อเป็นสัญญาณซื้อที่ใช้ได้กับทุนทุกขนาด
 if ta.crossover(close, sma200) or ta.crossunder(close, sma200) or ta.crossunder(close, sma200 * 0.7) or ta.crossover(close, sma200 * 1.3)
-    txt = str.tostring(multiplier) + "X\\nBuy $" + str.tostring(buy_amount)
+    txt = str.tostring(multiplier) + "X Buy"
     lbl_color = is_crash ? color.red : is_bear ? color.orange : is_bull ? color.green : color.blue
-    label.new(bar_index, low, text=txt, style=label.style_label_up, color=lbl_color, textcolor=color.white, size=size.small)
+    label.new(bar_index, low - (low * 0.05), text=txt, style=label.style_label_up, color=lbl_color, textcolor=color.white, size=size.small)
 
 // Background color for zones
 bgcolor(is_crash ? color.new(color.red, 90) : na, title="Crash Zone")
