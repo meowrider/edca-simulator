@@ -465,19 +465,21 @@ strategy("BossQuant: ${stratName}", overlay=true, initial_capital=${initialCash}
 // ==========================================
 
 target_dca = input.float(${targetDCA}, "เป้าหมายเงินลงทุนต่องวด ($)")
-buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)")
+buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)")\`;
 
-// --- Global Market Indicators (Only for Multiplier) ---
+            if (strategy !== 'pure_va') {
+                tvScript += \`
+// --- Global Market Indicators (Multiplier only) ---
 sma_length = 200
 sma200 = ta.sma(close, sma_length)
 is_crash = close < sma200 * 0.7
 is_bear = close < sma200 and close >= sma200 * 0.7
 is_bull = close > sma200 * 1.3
+plot(sma200, color=color.blue, title="SMA 200")
+\`;
+            }
 
-// Plot SMA only if Multiplier
-if '${strategy}' != 'pure_va'
-    plot(sma200, color=color.blue, title="SMA 200")
-
+            tvScript += \`
 var int period_count = 0
 
 // เช็ครอบการเข้าซื้อ
