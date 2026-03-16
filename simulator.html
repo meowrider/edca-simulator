@@ -453,7 +453,7 @@
 
             let tvScript = `// This source code is subject to the terms of the Mozilla Public License 2.0
 //@version=5
-strategy("BossQuant: ${stratName}", overlay=true, initial_capital=${initialCash}, default_qty_type=strategy.cash)
+strategy("BossQuant: ${stratName}", overlay=true, initial_capital=\${initialCash}, pyramiding=9999)
 
 // ==========================================
 // ⚡ CUSTOM TRADING PLAN
@@ -498,11 +498,11 @@ if is_buy_time
     // --- Logic: Pure Value Averaging ---
     if period_count == 1
         buy_amount := target_dca
-        strategy.order("Buy", strategy.long, qty=buy_amount/close)
+        strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
         label.new(bar_index, low - (low*0.05), text="💰 ซื้อครั้งแรก\\n$" + str.tostring(buy_amount, "#.##"), style=label.style_label_up, color=color.blue, textcolor=color.white, size=size.small)
     else if deficit > 0
         buy_amount := deficit
-        strategy.order("Buy", strategy.long, qty=buy_amount/close)
+        strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
         label.new(bar_index, low - (low*0.05), text="💰 ซื้อชดเชย\\n$" + str.tostring(buy_amount, "#.##"), style=label.style_label_up, color=color.blue, textcolor=color.white, size=size.small)
     else
         label.new(bar_index, low - (low*0.05), text="⏳ ถือ (กำไรเกินเป้า)", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)`;
@@ -525,7 +525,7 @@ if is_buy_time
     // Check Zones for Color
     zone_color = multiplier == 5.0 ? color.red : multiplier == 2.0 ? color.orange : multiplier == 0.5 ? color.green : color.blue
     
-    strategy.order("Buy", strategy.long, qty=buy_amount/close)
+    strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
     label.new(bar_index, low - (low*0.05), text="💰 x" + str.tostring(multiplier) + " ซื้อ\\n$" + str.tostring(buy_amount, "#.##"), style=label.style_label_up, color=zone_color, textcolor=color.white, size=size.small)`;
             }
 
