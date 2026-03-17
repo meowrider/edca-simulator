@@ -465,19 +465,26 @@
 
 // --- Settings ---
 target_dca = input.float(${targetDCA}, title="เป้าหมายเงินลงทุนต่องวด ($)", group="EDCA Settings")
-buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน - แนะนำใช้ Timeframe 1D)", group="EDCA Settings")
+buy_interval_days = input.int(${interval}, "ความถี่ (จำนวนวันจริง)", group="EDCA Settings")
 
-// --- Date Filter (Synced with Web) ---
+// --- Date Filter ---
 start_year = input.int(${sYear}, "เริ่มปี (Year)", group="Date Filter")
 start_month = input.int(${sMonth}, "เริ่มเดือน (Month)", group="Date Filter")
 start_day = input.int(${sDay}, "เริ่มวันที่ (Day)", group="Date Filter")
 in_date_range = time >= timestamp(start_year, start_month, start_day, 0, 0)
 
-// --- Execution ---
-var int period_count = 0
-is_buy_time = bar_index % buy_interval == 0
+// --- Real-Time Day Counter Logic ---
+is_new_day = ta.change(time("D")) != 0
+var int day_counter = 0
 
-if is_buy_time and in_date_range
+if is_new_day and in_date_range
+    day_counter += 1
+
+var int period_count = 0
+is_buy_time = is_new_day and in_date_range and (day_counter % buy_interval_days == 0)
+
+// --- Execution ---
+if is_buy_time
     period_count += 1
     target_portfolio_value = period_count * target_dca
     current_portfolio_value = strategy.position_size * close
@@ -507,9 +514,9 @@ if is_buy_time and in_date_range
 base_dca = input.float(${targetDCA}, title="Base DCA Amount ($)", group="EDCA Settings")
 ema_length = input.int(200, title="Trend EMA Length", group="EDCA Settings")
 crash_threshold = input.float(30.0, title="Crash Threshold (%)", group="EDCA Settings")
-buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน - แนะนำใช้ Timeframe 1D)", group="EDCA Settings")
+buy_interval_days = input.int(${interval}, "ความถี่ (จำนวนวันจริง)", group="EDCA Settings")
 
-// --- Date Filter (Synced with Web) ---
+// --- Date Filter ---
 start_year = input.int(${sYear}, "เริ่มปี (Year)", group="Date Filter")
 start_month = input.int(${sMonth}, "เริ่มเดือน (Month)", group="Date Filter")
 start_day = input.int(${sDay}, "เริ่มวันที่ (Day)", group="Date Filter")
@@ -549,11 +556,18 @@ else
 
 float buy_amount = base_dca * multiplier
 
-// --- Execution ---
-var int period_count = 0
-is_buy_time = bar_index % buy_interval == 0
+// --- Real-Time Day Counter Logic ---
+is_new_day = ta.change(time("D")) != 0
+var int day_counter = 0
 
-if is_buy_time and in_date_range
+if is_new_day and in_date_range
+    day_counter += 1
+
+var int period_count = 0
+is_buy_time = is_new_day and in_date_range and (day_counter % buy_interval_days == 0)
+
+// --- Execution ---
+if is_buy_time
     period_count += 1
     strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
     
