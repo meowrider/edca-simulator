@@ -447,42 +447,23 @@
             let initialCash = document.getElementById('inputCapital').value;
             let targetDCA = document.getElementById('inputTarget').value;
             let interval = document.getElementById('inputInterval').value;
-            let strategy = document.getElementById('inputStrategy').value;
-
-            let stratName = strategy === 'pure_va' ? 'Pure Value Averaging' : 'Multiplier EDCA';
+            let strategyType = document.getElementById('inputStrategy').value;
 
             let tvScript = `// This source code is subject to the terms of the Mozilla Public License 2.0
+// © Boss_Quant_Fund
+
 //@version=5
-strategy("BossQuant: ${stratName}", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
-
-// ==========================================
-// ⚡ CUSTOM TRADING PLAN
-// ------------------------------------------
-// 💰 ทุนเตรียมไว้: ${initialCash}
-// 🎯 เป้าหมายต่องวด: ${targetDCA}
-// ⏱ ความถี่: ทุก ${interval} แท่งเทียน (Bars)
-// 🧠 กลยุทธ์: ${stratName}
-// ==========================================
-
-target_dca = input.float(${targetDCA}, "เป้าหมายเงินลงทุนต่องวด ($)")
-buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)")`;
-
-            if (strategy !== 'pure_va') {
-                tvScript += `
-// --- Global Market Indicators (Multiplier only) ---
-sma_length = 200
-sma200 = ta.sma(close, sma_length)
-is_crash = close < sma200 * 0.7
-is_bear = close < sma200 and close >= sma200 * 0.7
-is_bull = close > sma200 * 1.3
-plot(sma200, color=color.blue, title="SMA 200")
 `;
-            }
 
-            tvScript += `
+            if (strategyType === 'pure_va') {
+                tvScript += `strategy("Boss EDCA: Pure VA", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
+
+// --- Settings ---
+target_dca = input.float(${targetDCA}, title="เป้าหมายเงินลงทุนต่องวด ($)", group="EDCA Settings")
+buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)", group="EDCA Settings")
+
+// --- Execution (Custom Interval) ---
 var int period_count = 0
-
-// เช็ครอบการเข้าซื้อ
 is_buy_time = bar_index % buy_interval == 0
 
 if is_buy_time
@@ -491,11 +472,7 @@ if is_buy_time
     current_portfolio_value = strategy.position_size * close
     deficit = target_portfolio_value - current_portfolio_value
     
-    float buy_amount = 0.0`;
-
-            if (strategy === 'pure_va') {
-                tvScript += `
-    // --- Logic: Pure Value Averaging ---
+    float buy_amount = 0.0
     if period_count == 1
         buy_amount := target_dca
         strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
@@ -507,26 +484,56 @@ if is_buy_time
     else
         label.new(bar_index, low - (low*0.05), text="⏳ ถือ (กำไรเกินเป้า)", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)`;
             } else {
-                tvScript += `
-    // --- Logic: Multiplier EDCA ---
-    float multiplier = 1.0
-    if period_count > 0
-        if is_crash
-            multiplier := 5.0
-        else if is_bear
-            multiplier := 2.0
-        else if is_bull
-            multiplier := 0.5
-        else
-            multiplier := 1.0
-            
-    buy_amount := target_dca * multiplier
-    
-    // Check Zones for Color
-    zone_color = multiplier == 5.0 ? color.red : multiplier == 2.0 ? color.orange : multiplier == 0.5 ? color.green : color.blue
-    
+                tvScript += `strategy("Boss EDCA Sniper V1", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
+
+// --- Settings ---
+base_dca = input.float(${targetDCA}, title="Base DCA Amount ($)", group="EDCA Settings")
+ema_length = input.int(200, title="Trend EMA Length", group="EDCA Settings")
+crash_threshold = input.float(30.0, title="Crash Threshold (%)", group="EDCA Settings", tooltip="Drop from 50-day high to trigger 5x buy")
+buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)", group="EDCA Settings")
+
+// --- Indicators ---
+ema_trend = ta.ema(close, ema_length)
+highest_50 = ta.highest(high, 50)
+drop_pct = ((highest_50 - close) / highest_50) * 100
+
+// --- Logic ---
+float multiplier = 1.0
+string zone_name = "NORMAL"
+color zone_color = color.new(color.gray, 50)
+
+if drop_pct >= crash_threshold
+    multiplier := 5.0
+    zone_name := "CRASH ZONE (5x)"
+    zone_color := color.new(color.red, 50)
+else if close < ema_trend
+    multiplier := 2.0
+    zone_name := "BEAR ZONE (2x)"
+    zone_color := color.new(color.orange, 50)
+else if close > (ema_trend * 1.2)
+    multiplier := 0.5
+    zone_name := "BULL ZONE (0.5x)"
+    zone_color := color.new(color.green, 50)
+else
+    multiplier := 1.0
+    zone_name := "NORMAL ZONE (1x)"
+    zone_color := color.new(color.blue, 50)
+
+float buy_amount = base_dca * multiplier
+
+// --- Execution (Custom Interval) ---
+var int period_count = 0
+is_buy_time = bar_index % buy_interval == 0
+
+if is_buy_time
+    period_count += 1
     strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
-    label.new(bar_index, low - (low*0.05), text="💰 x" + str.tostring(multiplier) + " ซื้อ\\n$" + str.tostring(buy_amount, "#.##"), style=label.style_label_up, color=zone_color, textcolor=color.white, size=size.small)`;
+    
+    label_text = "💰 " + zone_name + "\\nBuy $" + str.tostring(buy_amount, "#.##")
+    label.new(bar_index, low - (low*0.05), text=label_text, color=zone_color, textcolor=color.white, style=label.style_label_up, size=size.small)
+
+// --- Visuals ---
+plot(ema_trend, color=color.white, linewidth=2, title="Trend EMA")`;
             }
 
             document.getElementById('customTVCode').innerText = tvScript;
