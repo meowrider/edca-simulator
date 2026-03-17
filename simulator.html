@@ -462,11 +462,17 @@
 target_dca = input.float(${targetDCA}, title="เป้าหมายเงินลงทุนต่องวด ($)", group="EDCA Settings")
 buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)", group="EDCA Settings")
 
+// --- Date Filter (สำคัญ: เพื่อไม่ให้เริ่มเก็บสถิติตั้งแต่ 10 ปีที่แล้ว) ---
+start_year = input.int(2023, "เริ่มปี (Year)", group="Date Filter")
+start_month = input.int(1, "เริ่มเดือน (Month)", group="Date Filter")
+start_day = input.int(1, "เริ่มวันที่ (Day)", group="Date Filter")
+in_date_range = time >= timestamp(start_year, start_month, start_day, 0, 0)
+
 // --- Execution (Custom Interval) ---
 var int period_count = 0
 is_buy_time = bar_index % buy_interval == 0
 
-if is_buy_time
+if is_buy_time and in_date_range
     period_count += 1
     target_portfolio_value = period_count * target_dca
     current_portfolio_value = strategy.position_size * close
@@ -491,6 +497,12 @@ base_dca = input.float(${targetDCA}, title="Base DCA Amount ($)", group="EDCA Se
 ema_length = input.int(200, title="Trend EMA Length", group="EDCA Settings")
 crash_threshold = input.float(30.0, title="Crash Threshold (%)", group="EDCA Settings", tooltip="Drop from 50-day high to trigger 5x buy")
 buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)", group="EDCA Settings")
+
+// --- Date Filter ---
+start_year = input.int(2023, "เริ่มปี (Year)", group="Date Filter")
+start_month = input.int(1, "เริ่มเดือน (Month)", group="Date Filter")
+start_day = input.int(1, "เริ่มวันที่ (Day)", group="Date Filter")
+in_date_range = time >= timestamp(start_year, start_month, start_day, 0, 0)
 
 // --- Indicators ---
 ema_trend = ta.ema(close, ema_length)
@@ -525,7 +537,7 @@ float buy_amount = base_dca * multiplier
 var int period_count = 0
 is_buy_time = bar_index % buy_interval == 0
 
-if is_buy_time
+if is_buy_time and in_date_range
     period_count += 1
     strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
     
