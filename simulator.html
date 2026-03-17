@@ -448,6 +448,11 @@
             let targetDCA = document.getElementById('inputTarget').value;
             let interval = document.getElementById('inputInterval').value;
             let strategyType = document.getElementById('inputStrategy').value;
+            let startDateStr = document.getElementById('inputStartDate').value || "2024-01-01";
+            let startD = new Date(startDateStr);
+            let sYear = startD.getFullYear();
+            let sMonth = startD.getMonth() + 1;
+            let sDay = startD.getDate();
 
             let tvScript = `// This source code is subject to the terms of the Mozilla Public License 2.0
 // © Boss_Quant_Fund
@@ -456,19 +461,19 @@
 `;
 
             if (strategyType === 'pure_va') {
-                tvScript += `strategy("Boss EDCA: Pure VA", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
+                tvScript += `strategy("Boss EDCA: Pure VA (Consultant)", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
 
 // --- Settings ---
 target_dca = input.float(${targetDCA}, title="เป้าหมายเงินลงทุนต่องวด ($)", group="EDCA Settings")
-buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)", group="EDCA Settings")
+buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน - แนะนำใช้ Timeframe 1D)", group="EDCA Settings")
 
-// --- Date Filter (สำคัญ: เพื่อไม่ให้เริ่มเก็บสถิติตั้งแต่ 10 ปีที่แล้ว) ---
-start_year = input.int(2023, "เริ่มปี (Year)", group="Date Filter")
-start_month = input.int(1, "เริ่มเดือน (Month)", group="Date Filter")
-start_day = input.int(1, "เริ่มวันที่ (Day)", group="Date Filter")
+// --- Date Filter (Synced with Web) ---
+start_year = input.int(${sYear}, "เริ่มปี (Year)", group="Date Filter")
+start_month = input.int(${sMonth}, "เริ่มเดือน (Month)", group="Date Filter")
+start_day = input.int(${sDay}, "เริ่มวันที่ (Day)", group="Date Filter")
 in_date_range = time >= timestamp(start_year, start_month, start_day, 0, 0)
 
-// --- Execution (Custom Interval) ---
+// --- Execution ---
 var int period_count = 0
 is_buy_time = bar_index % buy_interval == 0
 
@@ -479,29 +484,35 @@ if is_buy_time and in_date_range
     deficit = target_portfolio_value - current_portfolio_value
     
     float buy_amount = 0.0
+    string msg = ""
+    
     if period_count == 1
         buy_amount := target_dca
-        strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
-        label.new(bar_index, low - (low*0.05), text="💰 ซื้อครั้งแรก\\n$" + str.tostring(buy_amount, "#.##"), style=label.style_label_up, color=color.blue, textcolor=color.white, size=size.small)
+        msg := "🎯 ซื้อประเดิมงวดแรก\\nยอดซื้อ: $" + str.tostring(buy_amount, "#.##")
     else if deficit > 0
         buy_amount := deficit
-        strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
-        label.new(bar_index, low - (low*0.05), text="💰 ซื้อชดเชย\\n$" + str.tostring(buy_amount, "#.##"), style=label.style_label_up, color=color.blue, textcolor=color.white, size=size.small)
+        msg := "🎯 ซื้อชดเชยเพื่อให้ได้เป้า\\nเป้า: $" + str.tostring(target_portfolio_value, "#.##") + "\\nพอร์ตจริง: $" + str.tostring(current_portfolio_value, "#.##") + "\\nยอดซื้อ: $" + str.tostring(buy_amount, "#.##")
     else
-        label.new(bar_index, low - (low*0.05), text="⏳ ถือ (กำไรเกินเป้า)", style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)`;
+        msg := "⏳ งวดนี้ไม่ต้องซื้อ\\n(พอร์ตโตเกินเป้าหมายแล้ว)\\nเป้า: $" + str.tostring(target_portfolio_value, "#.##") + "\\nพอร์ตจริง: $" + str.tostring(current_portfolio_value, "#.##")
+        
+    if buy_amount > 0
+        strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
+        label.new(bar_index, low - (low*0.05), text=msg, style=label.style_label_up, color=color.blue, textcolor=color.white, size=size.small)
+    else
+        label.new(bar_index, low - (low*0.05), text=msg, style=label.style_label_up, color=color.green, textcolor=color.white, size=size.small)`;
             } else {
-                tvScript += `strategy("Boss EDCA Sniper V1", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
+                tvScript += `strategy("Boss EDCA Sniper (Consultant)", overlay=true, initial_capital=${initialCash}, pyramiding=99999)
 
 // --- Settings ---
 base_dca = input.float(${targetDCA}, title="Base DCA Amount ($)", group="EDCA Settings")
 ema_length = input.int(200, title="Trend EMA Length", group="EDCA Settings")
-crash_threshold = input.float(30.0, title="Crash Threshold (%)", group="EDCA Settings", tooltip="Drop from 50-day high to trigger 5x buy")
-buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน)", group="EDCA Settings")
+crash_threshold = input.float(30.0, title="Crash Threshold (%)", group="EDCA Settings")
+buy_interval = input.int(${interval}, "ความถี่ (จำนวนแท่งเทียน - แนะนำใช้ Timeframe 1D)", group="EDCA Settings")
 
-// --- Date Filter ---
-start_year = input.int(2023, "เริ่มปี (Year)", group="Date Filter")
-start_month = input.int(1, "เริ่มเดือน (Month)", group="Date Filter")
-start_day = input.int(1, "เริ่มวันที่ (Day)", group="Date Filter")
+// --- Date Filter (Synced with Web) ---
+start_year = input.int(${sYear}, "เริ่มปี (Year)", group="Date Filter")
+start_month = input.int(${sMonth}, "เริ่มเดือน (Month)", group="Date Filter")
+start_day = input.int(${sDay}, "เริ่มวันที่ (Day)", group="Date Filter")
 in_date_range = time >= timestamp(start_year, start_month, start_day, 0, 0)
 
 // --- Indicators ---
@@ -513,27 +524,32 @@ drop_pct = ((highest_50 - close) / highest_50) * 100
 float multiplier = 1.0
 string zone_name = "NORMAL"
 color zone_color = color.new(color.gray, 50)
+string reason = ""
 
 if drop_pct >= crash_threshold
     multiplier := 5.0
-    zone_name := "CRASH ZONE (5x)"
+    zone_name := "CRASH (5x)"
     zone_color := color.new(color.red, 50)
+    reason := "ราคาร่วงจาก High > " + str.tostring(crash_threshold) + "%"
 else if close < ema_trend
     multiplier := 2.0
-    zone_name := "BEAR ZONE (2x)"
+    zone_name := "BEAR (2x)"
     zone_color := color.new(color.orange, 50)
+    reason := "ราคาหลุดเส้น EMA " + str.tostring(ema_length)
 else if close > (ema_trend * 1.2)
     multiplier := 0.5
-    zone_name := "BULL ZONE (0.5x)"
+    zone_name := "BULL (0.5x)"
     zone_color := color.new(color.green, 50)
+    reason := "ราคาห่างเส้น EMA เกิน 20%"
 else
     multiplier := 1.0
-    zone_name := "NORMAL ZONE (1x)"
+    zone_name := "NORMAL (1x)"
     zone_color := color.new(color.blue, 50)
+    reason := "ราคาวิ่งเกาะเส้น EMA ปกติ"
 
 float buy_amount = base_dca * multiplier
 
-// --- Execution (Custom Interval) ---
+// --- Execution ---
 var int period_count = 0
 is_buy_time = bar_index % buy_interval == 0
 
@@ -541,7 +557,7 @@ if is_buy_time and in_date_range
     period_count += 1
     strategy.order("Buy_" + str.tostring(period_count), strategy.long, qty=buy_amount/close)
     
-    label_text = "💰 " + zone_name + "\\nBuy $" + str.tostring(buy_amount, "#.##")
+    label_text = "💰 " + zone_name + "\\nซื้อ $" + str.tostring(buy_amount, "#.##") + "\\nเหตุผล: " + reason
     label.new(bar_index, low - (low*0.05), text=label_text, color=zone_color, textcolor=color.white, style=label.style_label_up, size=size.small)
 
 // --- Visuals ---
