@@ -523,14 +523,10 @@ start_month = input.int(${sMonth}, "เริ่มเดือน (Month)", gro
 start_day = input.int(${sDay}, "เริ่มวันที่ (Day)", group="Date Filter")
 in_date_range = time >= timestamp(start_year, start_month, start_day, 0, 0)
 
-// --- Lock Timeframe to 1D (Daily) ---
-d_close = request.security(syminfo.tickerid, "D", close)
-d_high = request.security(syminfo.tickerid, "D", high)
-
-// --- Indicators (Using Daily Data) ---
-ema_trend = ta.ema(d_close, ema_length)
-highest_50 = ta.highest(d_high, 50)
-drop_pct = ((highest_50 - d_close) / highest_50) * 100
+// --- Indicators (Dynamic to current Timeframe) ---
+ema_trend = ta.ema(close, ema_length)
+highest_50 = ta.highest(high, 50)
+drop_pct = ((highest_50 - close) / highest_50) * 100
 
 // --- Logic ---
 float multiplier = 1.0
@@ -542,13 +538,13 @@ if drop_pct >= crash_threshold
     multiplier := 5.0
     zone_name := "CRASH (5x)"
     zone_color := color.new(color.red, 50)
-    reason := "ราคาร่วงจาก High (Daily) > " + str.tostring(crash_threshold) + "%"
-else if d_close < ema_trend
+    reason := "ราคาร่วงจาก High > " + str.tostring(crash_threshold) + "%"
+else if close < ema_trend
     multiplier := 2.0
     zone_name := "BEAR (2x)"
     zone_color := color.new(color.orange, 50)
-    reason := "ราคาหลุดเส้น EMA " + str.tostring(ema_length) + " วัน"
-else if d_close > (ema_trend * 1.2)
+    reason := "ราคาหลุดเส้น EMA " + str.tostring(ema_length)
+else if close > (ema_trend * 1.2)
     multiplier := 0.5
     zone_name := "BULL (0.5x)"
     zone_color := color.new(color.green, 50)
@@ -579,8 +575,8 @@ if is_buy_time
     label_text = "💰 " + zone_name + "\\nซื้อ $" + str.tostring(buy_amount, "#.##") + "\\nเหตุผล: " + reason
     label.new(bar_index, low - (low*0.05), text=label_text, color=zone_color, textcolor=color.white, style=label.style_label_up, size=size.small)
 
-// --- Visuals (Optional: Plotting Daily EMA on Current Chart) ---
-plot(ema_trend, color=color.white, linewidth=2, title="Trend EMA (Daily)")`;
+// --- Visuals ---
+plot(ema_trend, color=color.white, linewidth=2, title="Trend EMA")`;
             }
 
             document.getElementById('customTVCode').innerText = tvScript;
